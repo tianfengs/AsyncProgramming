@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.28307.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DownloadFileAPM", "DownloadFileAPM\DownloadFileAPM.csproj", "{72F669BE-D07C-46CE-98B7-BF12442BA2F4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DownloadAPMDelegate", "DownloadAPMDelegate\DownloadAPMDelegate.csproj", "{912680D2-0EFB-422D-A97E-A1DC15E817DC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{72F669BE-D07C-46CE-98B7-BF12442BA2F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{72F669BE-D07C-46CE-98B7-BF12442BA2F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{72F669BE-D07C-46CE-98B7-BF12442BA2F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{912680D2-0EFB-422D-A97E-A1DC15E817DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{912680D2-0EFB-422D-A97E-A1DC15E817DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{912680D2-0EFB-422D-A97E-A1DC15E817DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{912680D2-0EFB-422D-A97E-A1DC15E817DC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

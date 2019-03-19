@@ -52,13 +52,14 @@ namespace DownloadFileAPM
     /// 在使用FileStream对象时的注意事项：
     /// 需要先决定是同步执行还是异步执行。并显示地指定 FileOptions.Asynchronous 参数或 useAsync 参数为true。
     /// </summary>
-    class Program
+    class DownloadFileAPM
     {
         static void Main(string[] args)
         {
             Console.WriteLine("Before");
 
-            DownloadFileAsync("https://www.baidu.com");
+            DownloadFileAsync("https://www.baidu.com"); // 异步调用，显示在屏幕
+            //DownLoadFileSync("https://www.baidu.com");    // 同步调用，输出到文件中
 
             Console.WriteLine("After");
 
@@ -165,8 +166,49 @@ namespace DownloadFileAPM
                 requestData = new StringBuilder("");
                 request = null;
                 streamResponse = null;
+
+                savepath = AppContext.BaseDirectory + "APM.txt";
+                filestream = new FileStream(savepath,FileMode.OpenOrCreate);
             }
+            public FileStream filestream;
+            public string savepath;
         }
         #endregion
+
+        #region Download File Synchrously
+        private static void DownLoadFileSync(string url)
+        {
+            // Create an instance of the RequestState 
+            RequestState requestState = new RequestState();
+            try
+            {
+                // Initialize an HttpWebRequest object
+                HttpWebRequest myHttpWebRequest = (HttpWebRequest)WebRequest.Create(url);
+
+                // assign HttpWebRequest instance to its request field.
+                requestState.request = myHttpWebRequest;
+                requestState.response = (HttpWebResponse)myHttpWebRequest.GetResponse();
+                requestState.streamResponse = requestState.response.GetResponseStream();
+                int readSize = requestState.streamResponse.Read(requestState.BufferRead, 0, requestState.BufferRead.Length);
+                while (readSize > 0)
+                {
+                    requestState.filestream.Write(requestState.BufferRead, 0, readSize);
+                    readSize = requestState.streamResponse.Read(requestState.BufferRead, 0, requestState.BufferRead.Length);
+                }
+
+                Console.WriteLine("\nThe Length of the File is: {0}", requestState.filestream.Length);
+                Console.WriteLine("DownLoad Completely, Download path is: {0}", requestState.savepath);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error Message is:{0}", e.Message);
+            }
+            finally
+            {
+                requestState.response.Close();
+                requestState.filestream.Close();
+            }
+        }
+        #endregion 
     }
 }
