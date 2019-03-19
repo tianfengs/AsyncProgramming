@@ -19,9 +19,9 @@ namespace DownloadAPMDelegate
     // 定义用来实现异步编程的委托
     delegate string AsyncMethodCaller(string fileurl);
 
-    public partial class Form1 : Form
+    public partial class FrmAPMDelegate : Form
     {
-        public Form1()
+        public FrmAPMDelegate()
         {
             InitializeComponent();
 

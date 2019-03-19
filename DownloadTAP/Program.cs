@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace DownloadAPMDelegate
+namespace DownloadTAP
 {
     static class Program
     {
@@ -16,7 +16,7 @@ namespace DownloadAPMDelegate
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new FrmAPMDelegate());
+            Application.Run(new FrmTAPAsync());
         }
     }
 }
