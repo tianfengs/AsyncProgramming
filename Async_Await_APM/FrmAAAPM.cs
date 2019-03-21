@@ -15,11 +15,11 @@ namespace Async_Await_APM
 
     delegate string AsyncMethodCaller();
 
-    public partial class Form1 : Form
+    public partial class FrmAAAPM : Form
     {
         SynchronizationContext sc;
 
-        public Form1()
+        public FrmAAAPM()
         {
             InitializeComponent();
 
@@ -44,7 +44,7 @@ namespace Async_Await_APM
             // 如果异步调用尚未完成，则 EndInvoke 会一直阻止调用线程，直到异步调用完成
             string resultvalue = caller.EndInvoke(ar);
             //sc.Post(ShowState,resultvalue);
-            //richTextBox1.Invoke(showStateCallback, resultvalue);  // 没有实现用方法showStateCallback
+            //richTextBox1.Invoke(showStateCallback, resultvalue);  
             richTextBox1.Invoke(new Action<string>((state)=>
             {
                 richTextBox1.Text = state.ToString();

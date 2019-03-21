@@ -1,0 +1,271 @@
+异步编程系列文章：
+http://www.cnblogs.com/heyuquan/archive/2013/04/26/3045827.html
+
+C#语言是微软于2000年发布，基于.NET Framewrok框架的、面向对象的高级语言。
+C#1.0托管代码→C#2.0泛型→C#3.0LINQ→C#4.0动态语言→C#5.0异步编程。
+
+
+C#版本（.NET 版本，Visual Studio 版本）
+1.C# 1.0（.NET 1.0/1.1，VS 2002/2003）
+C#的第一个正式发行版本。微软的团队从无到有创造了一种语言，专门为.NET编程提供支持。
+1.0 委托 事件；1.1 APM；
+2.C# 2.0（.NET 2.0、.NET 3.0，VS 2005）
+C#语言开始支持泛型。支持泛型的库，匿名方法，迭代器，可空类型
+新增了一套API来支持分布式通信（Windows Communication Foundation— WCF）、WPF（Windows Presentation Foundation）、工作流（Windows Workflow—WF）以及Web身份验证（Cardspaces）
+3.C# 3.0（.NET 3.5，VS 2008）
+添加了对LINQ的支持，对用于集合编程的API进行了大幅改进。.NET Framework 3.5对原有的API进行了扩展，从而支持了LINQ   
+自动实现属性，匿名类型，扩展方法，查询表达式，Lambda表达式，表达式树，分部类和方法，Linq，类型推断
+4.C# 4.0（.NET 4.0，VS 2010）
+添加了动态类型(dynamic)的支持，引入了新的轻量级线程同步基元及新的异步编程类库TPL，命名和可选参数，泛型的协变和逆变，互操作性
+5.C# 5.0（.NET 4.5，VS 2012）
+改进并扩展了.NET4.0中引入的TPL类库，并引入async和await关键字轻松构建异步方法。调用方信息(CallerInformation)
+6.C# 6.0（.NET Framework4.6， Visual Studio 2015）
+自动属性初始化的改进（有用），String.Format的改进（有用），字典的初始化，可以用static声明静态类的引用，nameof表达式，Null-条件表达式，在try-catch-finally中使用await
+7.C# 7.0（Visual Studio 2017）
+out-variables(Out变量)，Tuples(元组)，Pattern Matching(匹配模式)，ref locals and returns (局部变量和引用返回)，Local Functions (局部函数)，More expression-bodied members
+(更多的函数成员的表达式体)，throw Expressions (异常表达式)，Generalized async return types (通用异步返回类型)，Numeric literal syntax improvements(数值文字语法改进)
+
+一、 线程Thread类详解
+资料整理路线：线程----线程池----线程同步----并行任务----三种异步编程模型。
+
+1.         常用属性
+1)         CurrentContext                 获取线程正在其中执行的当前上下文。主要用于线程内部存储数据。
+2)         ExecutionContext             获取一个System.Threading.ExecutionContext对象，该对象包含有关当前线程的各种上下文的信息。主要用于线程间数据共享。
+3)         IsThreadPoolThread         获取一个值，该值指示线程是否属于托管线程池。
+4)         ManagedThreadId            获取一个整数，表示此托管线程的唯一标识符。
+5)         IsBackground                     获取或设置一个值，该值指示某个线程是否为后台线程。
+前台线程和后台线程并不等同于主线程和工作线程，如果所有的前台线程终止，那所有的后台线程也会被自动终止。应用程序必须运行完所有的前台线程才可以退出，所以，要特别注意前台线程的使用，会造成应用程序终止不了。
+默认情况下：通过Thread.Start()方法开启的线程都默认为前台线程。可以设置IsBackground属性将线程配置为后台线程。
+属于托管线程池的线程（即其 IsThreadPoolThread 属性为 true 的线程）是后台线程。从非托管代码进入托管执行环境的所有线程都被标记为后台线程。
+6)         IsAlive                            判断此线程是否还存活。经测试只有 Unstarted、Stopped 返回false；其他线程状态都返回true。
+
+2.         创建线程
+public Thread(ParameterizedThreadStart start);
+public Thread(ThreadStart start);
+public Thread(ParameterizedThreadStart start, int maxStackSize);
+public Thread(ThreadStart start, int maxStackSize);
+
+Thread包含使用ThreadStart或ParameterizedThreadStart委托做参数的构造函数，这些委托包装调用Start()时由新线程执行的方法。
+注意：线程一旦启动，就不必保留对Thread对象的引用。线程会继续执行直到线程所调用委托执行完毕。
+1)         向线程传递数据（见示例"AsyncBase1_1"）
+我们可以直接使用接收ParameterizedThreadStart参数Thread构造函数创建新线程，再通过Start(object parameter)传入参数并启动线程。由于Start方法接收任何对象，所以这并不是一种类型安全的实现。
+所以我们可以使用一种替代方案：将线程执行的方法和待传递数据封装在帮助器类中，使用无参的Start()启动线程。必要的时候需在帮助器类中使用同步基元对象避免线程共享数据的死锁和资源争用。
+2)         使用回调方法检索数据（见示例"AsyncBase1_1"）
+Thread构造函数接收的ThreadStart或ParameterizedThreadStart委托参数，这两个委托的声明都是返回void，即线程执行完后不会有数据返回（主线程也不会等待Thread创建的线程返回，否则创建新线程就无意义了）。
+那么如何在异步执行完时做出响应呢？答：使用回调方法。
+
+3.         调度线程
+使用Thread.Priority属性获取或设置任何线程的优先级。优先级：Lowest <BelowNormal< Normal <AboveNormal< Highest。
+低优先级的线程并不是被阻塞直到较高优先级的线程完成，低优先级的线程只是在相同时间间隔被CPU调度的次数相对“较少”。
+public enum ThreadPriority
+{
+    Lowest = 0,
+    BelowNormal = 1,
+    // 默认情况下，线程具有 Normal 优先级。***
+    Normal = 2,
+    AboveNormal = 3,
+    Highest = 4,
+}
+策略：
+最好是降低一个线程的优先级，而不是提升另一个线程的优先级。
+如果线程要执行一个长时间运行的计算限制任务，比如编译代码、拼写检查、电子表格重新计算等，一般应降低该线程的优先级。
+如果线程要快速响应某个事件，然后运行非常短暂的时间，再恢复为等待状态，则应提高该线程的优先级。
+高优先级线程在其生命中的大多数时间里都应处于等待状态，这样才不至于影响系统的总体响应能力。
+
+4.         线程状态
+Thread.ThreadState属性提供一个位掩码，用它指示线程的当前状态。
+[Flags]
+public enum ThreadState
+{
+    //线程已启动，它未被阻塞，并且没有挂起的 ThreadAbortException。
+    Running = 0,
+    // 正在请求线程停止。 这仅用于内部。
+    StopRequested = 1,
+    // 正在请求线程挂起。
+    SuspendRequested = 2,
+    // 线程正作为后台线程执行（相对于前台线程而言）。 此状态可以通过设置 Thread.IsBackground 属性来控制。
+    Background = 4,
+    // 尚未对线程调用 Thread.Start() 方法。
+    Unstarted = 8,
+    // 线程已停止。
+    Stopped = 16,
+    // 线程已被阻止。 这可能是因为：调用 Thread.Sleep(System.Int32) 或 Thread.Join()、请求锁定（例如通过调用Monitor.Enter(System.Object) 
+	//  或 Monitor.Wait(System.Object,System.Int32,System.Boolean)）或等待线程同步对象（例如Threading.ManualResetEvent）。
+    WaitSleepJoin = 32,
+    // 线程已挂起。
+    Suspended = 64,
+    // 已对线程调用了 Thread.Abort(System.Object) 方法，但线程尚未收到试图终止它的挂起的ThreadAbortException。
+    AbortRequested = 128,
+    // 线程状态包括 ThreadState.AbortRequested 并且该线程现在已死，但其状态尚未更改为 ThreadState.Stopped。
+    Aborted = 256,
+}
+线程可以同时处于多个状态中。
+例如，如果某个线程在 Monitor.Wait 调用被阻止，并且另一个线程对同一个线程调用 Abort，则该线程将同时处于 WaitSleepJoin 和 AbortRequested 状态。
+在这种情况下，一旦该线程从对 Wait 的调用返回或该线程中断，它就会收到 ThreadAbortException。
+
+5.         线程状态操作方法
+操作：Start()，Abort()，Suspend()，Resume()， Join()，Interrupt()以及静态方法Sleep()和ResetAbort()
+调用 Thread 类的构造函数。							Unstarted
+另一个线程调用 Thread.Start。						Unstarted
+线程响应 Thread.Start 并开始运行。					Running
+线程调用 Thread.Sleep。							WaitSleepJoin
+线程对另一个对象调用 Monitor.Wait。					WaitSleepJoin
+线程对另一个线程调用 Thread.Join。					WaitSleepJoin
+另一个线程调用 Thread.Suspend。					SuspendRequested
+线程返回到托管代码时，线程响应 Thread.Suspend 请求。	Suspended
+另一个线程调用 Thread.Resume。						Running
+另一个线程调用 Thread.Abort。						AbortRequested
+线程返回到托管代码时，线程响应 Thread.Abort。			Aborted ，然后 Stopped
+
+1)         开始线程
+调用Start()开始一个线程。一旦线程由于调用 Start 而离开 Unstarted 状态，那么它将无法再返回到 Unstarted 状态（最后被销毁）。
+2)         线程销毁及取消销毁
+调用线程的Abort()实例方法可以销毁目标线程实例，调用Thread.ResetAbort() 来取消线程销毁。
+请注意：
+	a) 异常是在目标线程捕获，而不是主线程的try-catch-finally。
+	b) 是“可以”销毁目标线程实例，不能保证线程会结束。因为
+		目标线程可捕捉 ThreadAbortException 异常并在此catch块中调用Thread.ResetAbort() 来取消线程销毁，取消后try块外面的代码可正常运行。
+		在finally块中可以执行任意数量的代码（在finally中调用Thread.ResetAbort()不能取消线程的销毁），若不给予超时设置也无法保证线程会结束。
+	c) 注意Abort()后要在catch或finally中清理对象。
+	d) 如果您希望一直等到被终止的线程结束，可以调用Thread.Join()方法。Join 是一个模块化调用，它直到线程实际停止执行时才返回。
+	e) 如果调用线程的 Abort 方法时线程正在执行非托管代码，则运行库将其标记为ThreadState.AbortRequested。待线程返回到托管代码时引发ThreadAbortException异常。
+	f) 一旦线程被中止ThreadState.Stoped，它将无法重新启动。
+(见示例AsyncBase1_2)
+3)         阻塞线程
+调用Sleep()方法使当前线程放弃剩余时间片，立即挂起(阻塞)并且在指定时间内不被调度。
+Sleep(timeout)，会有条件地将调用线程从当前处理器上移除，并且有可能将它从线程调度器的可运行队列中移除。这个条件取决于调用 Sleep 时timeout 参数。
+	a) 当 timeout = 0， 即 Sleep(0)，如果线程调度器的可运行队列中有大于或等于当前线程优先级的就绪线程存在，操作系统会将当前线程从处理器上移除，调度其他优先级高的就绪线程运行；
+	   如果可运行队列中的没有就绪线程或所有就绪线程的优先级均低于当前线程优先级，那么当前线程会继续执行，就像没有调用 Sleep(0)一样。
+	   一个时间片结束时，如果Windows决定再次调度同一个线程（而不是切换到另一个线程），那么Windows不会执行上下文切换。
+	b) 当 timeout > 0 时，如：Sleep(1)，可能会引发线程上下文切换（如果发生线程切换）：调用线程会从线程调度器的可运行队列中被移除一段时间，这个时间段约等于 timeout 所指定的时间长度。
+	   为什么说约等于呢？是因为睡眠时间单位为毫秒，这与系统的时间精度有关。通常情况下，系统的时间精度为 10 ms，那么指定任意少于 10 ms但大于 0 ms 的睡眠时间，均会向上求值为 10 ms。
+	c) 调用Thread.Sleep(Timeout.Infinite)将使线程休眠，直到其他运行线程调用 Interrupt ()中断处于WaitSleepJoin线程状态的线程，或调用Abort()中止线程。
+	   应用实例：轮询休眠	while (!proceed) Thread.Sleep (x);    // "轮询休眠!"
+4)         线程的挂起和唤醒(不建议使用)
+可结合Suspend()与Resume()来挂起和唤醒线程，这两方法已过时。
+5)         Join()
+在线程A中调用线程B的Join()实例方法。在继续执行标准的 COM 和 SendMessage 消息泵处理期间，线程A将被阻塞，直到线程B终止为止。
+6)         Interrupt()
+中断处于WaitSleepJoin线程状态的线程。如果此线程当前未阻塞在等待、休眠或联接状态中，则下次开始阻塞时它将被中断并引发ThreadInterruptedException异常。
+线程应该捕获ThreadInterruptedException并执行任何适当的操作以继续运行。如果线程忽略该异常，则运行库将捕获该异常并停止该线程。
+如果调用线程的 Interrupt()方法时线程正在执行非托管代码，则运行库将其标记为ThreadState.SuspendRequested。待线程返回到托管代码时引发ThreadInterruptedException异常。
+
+6.         SpinWait(int iterations)
+SpinWait实质上会将处理器置于十分紧密的自旋转中，当前线程一直占用CPU，其循环计数由 iterations 参数指定。
+SpinWait并不是一个阻止的方法：一个处于spin-waiting的线程的ThreadState不是WaitSleepJoin状态，并且也不会被其它的线程过早的中断(Interrupt)。
+SpinWait的作用是等待一个在极短时间（可能小于一微秒）内可准备好的可预期的资源，而避免调用Sleep()方法阻止线程而浪费CPU时间（上下文切换）。
+优点：避免线程上下文切换的耗时操作。
+缺点：CPU不能很好的调度CPU利用率。这种技术的优势只能在多处理器计算机上体现，对单一处理器的电脑，直到轮询的线程结束了它的时间片之前，别的资源无法获得cpu调度执行。
+
+7.         设置和获取线程的单元状态（不建议使用）
+// System.Threading.Thread 的单元状态。
+public enum ApartmentState
+{
+    // System.Threading.Thread 将创建并进入一个单线程单元。
+    STA = 0,
+    // System.Threading.Thread 将创建并进入一个多线程单元。
+    MTA = 1,
+    // 尚未设置 System.Threading.Thread.ApartmentState 属性。
+    Unknown = 2,
+}
+1)         可使用ApartmentState获取和设置线程的单元状态，（已经过时）
+2)         SetApartmentState()+TrySetApartmentState()+GetApartentState()
+可以标记一个托管线程以指示它将承载一个单线程或多线程单元。如果未设置该状态，则GetApartmentState返回ApartmentState.Unknown。
+只有当线程处于ThreadState.Unstarted状态时(即线程还未调用Start()时)才可以设置该属性；一个线程只能设置一次。
+如果在启动线程之前未设置单元状态，则该线程被初始化为默认多线程单元 (MTA)。（终结器线程和由ThreadPool控制的所有线程都是 MTA）
+要将主应用程序线程的单元状态设置为ApartmentState.STA的唯一方法是将STAThreadAttribute属性应用到入口点方法。（eg：Main()方法）
+
+8.         设置和检索线程数据（数据槽）（见示例：AsyncBase1_3)
+线程使用托管线程本地存储区 (TLS，Thread-Local Storage)来存储线程特定的数据，托管 TLS 中的数据都是线程和应用程序域组合所独有的，其他任何线程（即使是子线程）都无法获取这些数据。
+公共语言运行库在创建每个进程时给它分配一个多槽数据存储区数组，数据槽包括两种类型：命名槽和未命名槽。
+
+1)         若要创建命名数据槽，使用 Thread.AllocateNamedDataSlot() 或 Thread.GetNamedDataSlot() 方法。命名数据槽数据必须使用Thread.FreeNamedDataSlot()来释放。
+在任何线程调用Thread.FreeNamedDataSlot()之后，后面任何线程使用相同名称调用Thread.GetNamedDataSlot()都将返回新槽。
+但是，任何仍具有以前通过调用Thread.GetNamedDataSlot()返回的System.LocalDataStoreSlot引用的线程可以继续使用旧槽。
+只有当调用Thread.FreeNamedDataSlot()之前获取的所有LocalDataStoreSlot已被释放并进行垃圾回收之后，与名称关联的槽才会被释放。
+2)         若要获取对某个现有命名槽的引用，将其名称传递给 Thread.GetNamedDataSlot() 方法。
+3)         若要创建未命名数据槽，使用 Thread.AllocateDataSlot() 方法。未命名数据槽数据在线程终止后释放。
+4)         对于命名槽和未命名槽，使用 Thread.SetData() 和 Thread.GetData() 方法设置和检索槽中的信息。
+命名槽可能很方便，因为您可以在需要它时通过将其名称传递给 GetNamedDataSlot 方法来检索该槽，而不是维护对未命名槽的引用。
+但是，如果另一个组件使用相同的名称来命名其线程相关的存储区，并且有一个线程同时执行来自您的组件和该组件的代码，则这两个组件可能会破坏彼此的数据。
+（本方案假定这两个组件在同一应用程序域内运行，并且它们并不用于共享相同数据。）
+为了获得更好的性能，请改用以 System.ThreadStaticAttribute特性标记的线程相关的静态字段。
+
+9.         原子操作
+由于编译器，或者CPU的优化，可能导致程序执行的时候并不是真正的按照代码顺序执行。在多线程开发的时候可能会引起错误。
+在debug模式下，编译器不会做任何优化，而当Release后，编译器做了优化，此时就会出现问题。
+
+1)         Thread.MemoryBarrier()
+按如下方式同步内存存取：执行当前线程的处理器在对指令重新排序时，不能采用先执行 Thread.MemoryBarrier()调用之后的内存存取，再执行 Thread.MemoryBarrier() 调用之前的内存存取的方式。
+2)         Thread.VolatileRead()+Thread.VolatileWrite()   （内部使用MemoryBarrier()内存屏障）
+	a) VolatileRead()           读取字段值。无论处理器的数目或处理器缓存的状态如何，该值都是由计算机的任何处理器写入的最新值。
+	b) VolatileWrite ()         立即向字段写入一个值，以使该值对计算机中的所有处理器都可见。
+3)         关键字Volatile：
+为了简化编程，C#编译器提供了volatile关键字。确保JIT编译器对易失字段都以易失读取或者易失写入的方法执行，不用显示调用Thread的VolatileRead()和VolatileWrite()。
+
+10.     BeginCriticalRegion()+EndCriticalRegion()   （Critical：关键性的）
+若要通知宿主代码进入关键区域，调用BeginCriticalRegion。当执行返回到非关键代码区域时，调用EndCriticalRegion。
+公共语言运行库 (CLR) 的宿主可在关键代码区域和非关键代码区域建立不同的失败策略。
+	关键区域是指线程中止或未处理异常的影响可能不限于当前任务的区域。
+	非关键代码区域中的中止或失败只对出现错误的任务有影响。
+当关键区域中出现失败时，宿主可能决定卸载整个AppDomain，而不是冒险在可能不稳定的状态下继续执行。
+例如，假设有一个尝试在占有锁时分配内存的任务。如果内存分配失败，则中止当前任务并不足以确保AppDomain的稳定性，原因是域中可能存在其他等待同一个锁的任务。如果终止当前任务，则可能导致其他任务死锁。
+
+11.     BeginThreadAffinity()+EndThreadAffinity()   （Affinity：喜爱，密切关系）
+使用BeginThreadAffinity和EndThreadAffinity方法通知宿主代码块依赖于物理操作系统线程的标识。
+公共语言运行库的某些宿主提供其自己的线程管理。提供其自己的线程管理的宿主可以在任何时候将正在执行的任务从一个物理操作系统线程移至另一个物理操作系统线程。
+大多数任务不会受此切换影响。但是，某些任务具有【线程关联】 -- 即它们依赖于物理操作系统线程的标识。这些任务在其执行“不应被切换的代码”时必须通知宿主。
+例如，如果应用程序调用系统 API 以获取具有【线程关联】的操作系统锁（如 Win32 CRITICAL_SECTION），则必须在获取该锁之前调用BeginThreadAffinity，并在释放该锁之后调用EndThreadAffinity。
+还必须在从WaitHandle继承的任何 .NET Framework 类型上发生阻止之前调用BeginThreadAffinity，因为这些类型依赖于操作系统对象。
+
+二、线程本地存储区和线程相关的静态字段
+可以使用托管线程本地存储区 (TLS，Thread-Local Storage) 和线程相关的静态字段来存储某一线程和应用程序域所独有的数据。
+	a) 如果可以在编译时预料到确切需要，请使用线程相关的静态字段。
+	b) 如果只能在运行时发现实际需要，请使用数据槽。
+为了获得更好的性能，请尽量改用以 System.ThreadStaticAttribute特性标记的线程相关的静态字段。
+
+无论是使用线程相关的静态字段还是使用数据槽，托管 TLS 中的数据都是线程和应用程序域组合所独有的。
+	a) 在应用程序域内部，一个线程不能修改另一个线程中的数据，即使这两个线程使用同一个字段或槽时也不能。
+	b) 当线程从多个应用程序域中访问同一个字段或槽时，会在每个应用程序域中维护一个单独的值。
+
+1)         线程相关的静态字段（编译时）（见示例：AsyncBase1_3)
+如果您知道某类型的字段【总是某个线程和应用程序域组合】所独有的（即不是共享的），则使用ThreadStaticAttribute修饰静态字段(static)。
+需要注意的是，任何类构造函数代码都将在访问该字段的第一个上下文中的第一个线程上运行。
+在所有其他线程或上下文中，如果这些字段是引用类型，将被初始化为 null；如果这些字段是值类型，将被初始化为它们的默认值。
+因此，不要依赖于类构造函数来初始化线程相关的静态字段[ThreadStatic]。相反，应总是假定与线程相关的静态字段被初始化为 null 或它们的默认值。
+2)         数据槽（运行时） （见示例：AsyncBase1_3)
+
+三、.NET下未捕获异常的处理
+1.         控制台应用程序
+         通过为当前AppDomain添加 UnhandledException 事件处理程序。
+2.         WinForm窗体应用程序
+未处理的异常将引发Application.ThreadException事件
+3.         ASP.NET应用程序
+要截获ASP.NET 的未捕获异常，我们需要为每个应用程序域安装事件钩子。这个过程需要分两步完成：
+	a) 首先创建一个实现IHttpModule接口的类
+	b) 第二步：修改web.config，在 system.web 段中加入
+
+四、判断多个线程是否都结束的几种方法
+1.         线程计数器
+线程也可以采用计数器的方法，即为所有需要监视的线程设一个线程计数器，每开始一个线程，在线程的执行方法中为这个计数器加1，如果某个线程结束（在线程执行方法的最后），为这个计数器减1。
+使用这种方法需要使用原子操作(eg：Volatile、InterLocked)同步这个计数器变量。
+2.         使用Thread.join方法
+join方法只有在线程结束时才继续执行下面的语句。可以对每一个线程调用它的join方法，但要注意，这个调用要在一个专门线程里做，而不要在主线程，否则程序会被阻塞。
+3.         轮询Thread的IsAlive属性
+IsAlive判断此线程是否还存活。经测试只有 Unstarted、Stopped 返回false；其他线程状态都返回true。
+我们通过轮询检查此属性来判断线程是否结束。但要注意，这个调用要在一个专门线程里做，而不要在主线程，否则程序会被阻塞。
+EG：while(true) { foreach(多个线程){ if(thread1.IsAlive) { } } }
+4.         使用回调函数进行通知
+请参考“线程Thread类详解”节第二点示例（见示例"AsyncBase1_1"）
+5.         使用同步基元对象
+Eg：WaitHandle。在后续章节中再说明
+
+
+
+
+
+
+
+
+
+

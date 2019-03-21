@@ -1,6 +1,6 @@
 ﻿namespace Async_Await_APM
 {
-    partial class Form1
+    partial class FrmAAAPM
     {
         /// <summary>
         /// Required designer variable.
