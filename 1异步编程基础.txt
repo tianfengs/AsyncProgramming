@@ -1,4 +1,4 @@
-异步编程系列文章：
+异步编程系列文章1：《异步编程：线程概述及使用》
 http://www.cnblogs.com/heyuquan/archive/2013/04/26/3045827.html
 
 C#语言是微软于2000年发布，基于.NET Framewrok框架的、面向对象的高级语言。

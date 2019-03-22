@@ -34,6 +34,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncBase1_2", "AsyncBase1_
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncBase1_3", "AsyncBase1_3\AsyncBase1_3.csproj", "{38F28B0D-38DA-4F77-A0C8-32E7F640B225}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_2异步编程：使用线程池管理线程", "_2异步编程：使用线程池管理线程", "{38394120-83D2-441D-8474-AF72CF6EA1E8}"
+	ProjectSection(SolutionItems) = preProject
+		2异步编程：使用线程池管理线程.txt = 2异步编程：使用线程池管理线程.txt
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
