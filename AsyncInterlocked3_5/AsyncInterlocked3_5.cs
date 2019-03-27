@@ -5,10 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 
 /// <summary>
+/// 原子操作：
+/// 1. 易失结构：volatile关键字
+/// 2. 互锁结构：Interlocked类：包括原子求和、递增、递减、交换、条件比较交换，内存屏障、32位平台的64位long值的读取(本例使用此方法)
+/// 3. 易失读写：Thread.VolatileRead()、Thread.VolatileWrite()
 /// Interlocked.Exchange 方法
 /// https://docs.microsoft.com/zh-cn/dotnet/api/system.threading.interlocked.exchange?redirectedfrom=MSDN&view=netframework-4.7.2#System_Threading_Interlocked_Exchange_System_Int32__System_Int32_
 /// 原子操作赋值
-/// public static int Interlocked.Exchange(ref int location1, int value); 以原子操作的形式，将 32 位有符号整数设置为指定的值并返回原始值。
+/// 以原子操作的形式，将 32 位有符号整数设置为指定的值并返回原始值。
+/// public static int Interlocked.Exchange(ref int location1, int value); 
 /// ref int location1:要设置为指定值的变量。int value:参数要设置成的值。
 /// 返回值：location1 的原始值。
 /// </summary>
@@ -72,7 +77,7 @@ namespace AsyncInterlocked3_5
 
                 //Code to access a resource that is not thread safe would go here.
 
-                //Simulate some work
+                //Simulate some work 每次获得锁之后占用0.5秒
                 Thread.Sleep(500);
 
                 Console.WriteLine("{0} 结束锁 exiting lock", Thread.CurrentThread.Name);

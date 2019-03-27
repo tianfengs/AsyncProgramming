@@ -28,63 +28,76 @@ namespace AsyncBase1_3
 
         /// <summary>
         /// 数据槽  的使用示例
-        /// 托管 TLS 中的数据都是线程和应用程序域组合所独有的
+        /// 托管 TLS 中的数据都是线程和应用程序域组合所独有的: AppDomain && Thread
+        /// 
+        /// 其它线程（即使是子线程），也不能获得它数据槽的数据
+        /// 
         /// </summary>
         private static void TLS4DataSlot()
         {
             LocalDataStoreSlot slot = Thread.AllocateNamedDataSlot("Name");     // 创建数据槽
             Console.WriteLine(String.Format("ID为{0}的线程，命名为\"Name\"的数据槽，开始设置数据。", Thread.CurrentThread.ManagedThreadId));
             Thread.SetData(slot, "小丽");                                        // 为数据槽设置数据
-            Console.WriteLine(String.Format("ID为{0}的线程，命名为\"Name\"的数据槽，数据是\"{1}\"。"
+            Console.WriteLine(String.Format("  ID为{0}的线程，命名为\"Name\"的数据槽，数据是\"{1}\"。"
                              , Thread.CurrentThread.ManagedThreadId, Thread.GetData(slot)));
+            Console.WriteLine();
 
             Thread newThread = new Thread(                                      // 创建新线程，为新线程创建自己的数据槽，并设置数据槽数据
                 () =>
                 {
                     LocalDataStoreSlot storeSlot = Thread.GetNamedDataSlot("Name");
-                    Console.WriteLine(String.Format("ID为{0}的线程，命名为\"Name\"的数据槽，在新线程为其设置数据 前 为\"{1}\"。"
+                    Console.WriteLine(String.Format("  ID为{0}的线程，命名为\"Name\"的数据槽，在新线程为其设置数据 前 为\"{1}\"。"
                                      , Thread.CurrentThread.ManagedThreadId, Thread.GetData(storeSlot)));
                     Console.WriteLine(String.Format("ID为{0}的线程，命名为\"Name\"的数据槽，开始设置数据。", Thread.CurrentThread.ManagedThreadId));
                     Thread.SetData(storeSlot, "小红");
-                    Console.WriteLine(String.Format("ID为{0}的线程，命名为\"Name\"的数据槽，在新线程为其设置数据 后 为\"{1}\"。"
+                    Console.WriteLine(String.Format("  ID为{0}的线程，命名为\"Name\"的数据槽，在新线程为其设置数据 后 为\"{1}\"。"
                                      , Thread.CurrentThread.ManagedThreadId, Thread.GetData(storeSlot)));
 
-            // 命名数据槽中分配的数据必须用 FreeNamedDataSlot() 释放。未命名的数据槽数据随线程的销毁而释放
-            Thread.FreeNamedDataSlot("Name");
+                    // 命名数据槽中分配的数据必须用 FreeNamedDataSlot() 释放。未命名的数据槽数据随线程的销毁而释放
+                    Thread.FreeNamedDataSlot("Name");
+                    Console.WriteLine();
                 }
             );
             newThread.Start();
             newThread.Join();
 
-            Console.WriteLine(String.Format("执行完新线程后，ID为{0}的线程，命名为\"Name\"的数据槽，在新线程为其设置数据 后 为\"{1}\"。"
+            Console.WriteLine(String.Format("  执行完新线程后，ID为{0}的线程，命名为\"Name\"的数据槽，在新线程为其设置数据 后 为\"{1}\"。"
                              , Thread.CurrentThread.ManagedThreadId, Thread.GetData(slot)));
         }
 
+        /// <summary>
+        /// System.ThreadStaticAttribute特性标记，标记线程相关的静态字段
+        /// </summary>
         [ThreadStatic]
         static string name = String.Empty;
         /// <summary>
         /// 线程相关静态字段  的使用示例
         /// 某个线程和应用程序域组合所独有的（即不是共享的）
+        /// 
+        /// 其它线程（即使是子线程），也不能获得它数据槽的数据（和线程槽具有相同的功能）
+        /// 
         /// </summary>
         private static void TLS4StaticField()
         {
             Console.WriteLine(String.Format("ID为{0}的线程，开始为name静态字段设置数据。", Thread.CurrentThread.ManagedThreadId));
             name = "小丽";
-            Console.WriteLine(String.Format("ID为{0}的线程，name静态字段数据为\"{1}\"。", Thread.CurrentThread.ManagedThreadId, name));
+            Console.WriteLine(String.Format("  ID为{0}的线程，name静态字段数据为\"{1}\"。", Thread.CurrentThread.ManagedThreadId, name));
+            Console.WriteLine();
 
             Thread newThread = new Thread(
                 () =>
                 {
-                    Console.WriteLine(String.Format("ID为{0}的线程，为name静态字段设置数据 前 为\"{1}\"。", Thread.CurrentThread.ManagedThreadId, name));
+                    Console.WriteLine(String.Format("  ID为{0}的线程，为name静态字段设置数据 前 为\"{1}\"。", Thread.CurrentThread.ManagedThreadId, name));
                     Console.WriteLine(String.Format("ID为{0}的线程，开始为name静态字段设置数据。", Thread.CurrentThread.ManagedThreadId));
                     name = "小红";
-                    Console.WriteLine(String.Format("ID为{0}的线程，为name静态字段设置数据 后 为\"{1}\"。", Thread.CurrentThread.ManagedThreadId, name));
+                    Console.WriteLine(String.Format("  ID为{0}的线程，为name静态字段设置数据 后 为\"{1}\"。", Thread.CurrentThread.ManagedThreadId, name));
+                    Console.WriteLine();
                 }
             );
             newThread.Start();
             newThread.Join();
 
-            Console.WriteLine(String.Format("执行完新线程后，ID为{0}的线程，name静态字段数据为\"{1}\"。", Thread.CurrentThread.ManagedThreadId, name));
+            Console.WriteLine(String.Format("  执行完新线程后，ID为{0}的线程，name静态字段数据为\"{1}\"。", Thread.CurrentThread.ManagedThreadId, name));
         }
     }
 }

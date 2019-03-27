@@ -4,6 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+/// <summary>
+/// 本例演示，线程的执行上下文切换
+/// 确保辅助线程使用的是和初始线程相同的“安全设置”、“宿主设置”和“逻辑调用上下文”
+/// </summary>
 namespace AsyncThreadPoolContextChg2_2
 {
     using System.Runtime.Remoting.Messaging;
@@ -27,7 +31,10 @@ namespace AsyncThreadPoolContextChg2_2
         /// </summary>
         private static void Example_ExecutionContext()
         {
+            // CallContext 是类似于方法调用的线程本地存储区的专用集合对象，并提供对每个逻辑执行线程都唯一的数据槽。
+            // 数据槽不在其他逻辑线程上的调用上下文之间共享。
             CallContext.LogicalSetData("Name", "小红");       // 在逻辑调用上下文里存储一个对象
+                                                            
             Console.WriteLine("主线程中Name为：{0}", CallContext.LogicalGetData("Name"));     // 显示此上下文
 
             // 1)   在线程间共享逻辑调用上下文数据（CallContext）。
@@ -45,15 +52,18 @@ namespace AsyncThreadPoolContextChg2_2
                 Console.WriteLine("ThreadPool线程使用Unsafe异步执行方法来取消执行上下文的流动。Name为：\"{0}\"",
                     CallContext.LogicalGetData("Name"));
             }, null);
+
             Console.WriteLine("2)为了提升性能，取消/恢复执行上下文的流动。");
             AsyncFlowControl flowControl = ExecutionContext.SuppressFlow();
             ThreadPool.QueueUserWorkItem((Object obj)
-                => Console.WriteLine("(取消ExecutionContext流动)ThreadPool线程中Name为：\"{0}\"", CallContext.LogicalGetData("Name")));
+                => Console.WriteLine("(取消ExecutionContext流动)ThreadPool线程中Name为：\"{0}\""
+                , CallContext.LogicalGetData("Name")));
             Thread.Sleep(500);
             // 恢复不推荐使用ExecutionContext.RestoreFlow()
             flowControl.Undo();
             ThreadPool.QueueUserWorkItem((Object obj)
-                => Console.WriteLine("(恢复ExecutionContext流动)ThreadPool线程中Name为：\"{0}\"", CallContext.LogicalGetData("Name")));
+                => Console.WriteLine("(恢复ExecutionContext流动)ThreadPool线程中Name为：\"{0}\"",
+                CallContext.LogicalGetData("Name")));
             Thread.Sleep(500);
             Console.WriteLine();
 

@@ -12,6 +12,8 @@ namespace AsyncDoubleCheckLocking3_1
     {
         static void Main(string[] args)
         {
+            Singleton singleton = Singleton.GetSingleton();
+            
         }
     }
 
@@ -25,7 +27,10 @@ namespace AsyncDoubleCheckLocking3_1
         //private static Singleton s_value = new Singleton(); // 饿汉加载方式 延迟加载
 
         // 私有构造器，阻止外部创建实例
-        private Singleton() { }
+        private Singleton() { Count = 0; }
+
+        public static void Increase() { Count++; }
+        public static int Count { get; set; }
 
         public static Singleton GetSingleton()
         {

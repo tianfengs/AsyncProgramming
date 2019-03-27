@@ -25,7 +25,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Async_Await_AsAwMethod", "A
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_1.异步编程基础", "_1.异步编程基础", "{3D4C7D1A-23C1-4751-85EC-3FBB1ABC5763}"
 	ProjectSection(SolutionItems) = preProject
-		1异步编程基础.txt = 1异步编程基础.txt
+		1异步编程基础.md = 1异步编程基础.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncBase1_1", "AsyncBase1_1\AsyncBase1_1.csproj", "{C5A72F2B-B192-4A04-94FC-60157FEF6D80}"
