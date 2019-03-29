@@ -73,6 +73,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncCountdownEvent4_3", "A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncBarrier4_4", "AsyncBarrier4_4\AsyncBarrier4_4.csproj", "{0A9E57AA-E30F-4926-8E9A-AF5FBC81C51D}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_5异步编程：.NET4.X 数据并行", "_5异步编程：.NET4.X 数据并行", "{17FE351B-A7A1-47C1-88C7-5DA75E348077}"
+	ProjectSection(SolutionItems) = preProject
+		5异步编程：.NET4.X 数据并行.md = 5异步编程：.NET4.X 数据并行.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
