@@ -4,7 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
+/// <summary>
+/// 验证
+/// "双检锁在执行完构造函数后才会将变量引用返回"
+/// 
+/// </summary>
 namespace AsyncDoubleCheckLocking3_2
 {
     using System.Threading;

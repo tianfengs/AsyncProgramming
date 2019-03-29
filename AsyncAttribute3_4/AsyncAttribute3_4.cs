@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 /// <summary>
-/// 7、2. 利用特性进行上下文同步和方法同步  MethodImplAttribute(AttributeTargets.Constructor | AttributeTargets.Method)
+/// 7、2. 利用特性进行上下文方法同步  MethodImplAttribute(AttributeTargets.Constructor | AttributeTargets.Method)
 /// </summary>
 namespace AsyncAttribute3_4
 {
@@ -31,6 +31,7 @@ namespace AsyncAttribute3_4
             {
                 Thread.Sleep(100);
                 Console.WriteLine("MethodImpl特性标注的静态方法----1");
+                Thread.Sleep(100);
                 Console.WriteLine("1秒后释放lock (typeof(class1))");
                 Thread.Sleep(1000);
             }

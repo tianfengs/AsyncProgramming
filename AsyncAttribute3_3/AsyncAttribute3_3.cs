@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 /// <summary>
-/// 七、1.利用特性进行上下文同步和方法同步
+/// 八、1.利用特性（属性标签）进行类上下文同步
 /// 应用SynchronizaitonAttribute的类，CLR会自动对这个类实施同步机制。
 /// 为当前上下文和所有共享同一实例的上下文强制一个同步域(同步域之所以有意义就在于它不能被多个线程所共享。
 /// 换句话说，一个处在同步域中的对象的方法是不能被多个线程同时执行的。这也意味着在任一时刻，最多只有一个线程处于同步域中)。
@@ -29,9 +29,9 @@ namespace AsyncAttribute3_3
         }
 
 
-        [Synchronization(SynchronizationAttribute.REQUIRED)]
-        internal class class1 : ContextBoundObject
-        {// 必须继承于System.ContextBoundObject类
+        [Synchronization(SynchronizationAttribute.REQUIRED)]    // 特性（属性标签）进行类上下文同步
+        internal class class1 : ContextBoundObject // 必须继承于System.ContextBoundObject类！！！
+        {
             public void Test1()
             {
                 Thread.Sleep(1000);
