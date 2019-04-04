@@ -59,7 +59,7 @@ namespace AsyncThreadPoolContextChg2_2
                 => Console.WriteLine("(取消ExecutionContext流动)ThreadPool线程中Name为：\"{0}\""
                 , CallContext.LogicalGetData("Name")));
             Thread.Sleep(500);
-            // 恢复不推荐使用ExecutionContext.RestoreFlow()
+            // 恢复，不推荐使用ExecutionContext.RestoreFlow()
             flowControl.Undo();
             ThreadPool.QueueUserWorkItem((Object obj)
                 => Console.WriteLine("(恢复ExecutionContext流动)ThreadPool线程中Name为：\"{0}\"",
